@@ -1,9 +1,10 @@
 import express from "express";
 import { connectDB } from "./config/database.js";
 import mongoose from "mongoose";
+import User from "./models/user.js";
 const app = express();
 
-app.get("/", async (req, res) => {
+app.get("/all", async (req, res) => {
   const result = await mongoose.connection.db
     .collection("user")
     .find()
@@ -11,6 +12,20 @@ app.get("/", async (req, res) => {
 
   console.log(result);
   res.send(result);
+});
+
+app.post("/signup", async (req, res) => {
+  const user = new User({
+    firstName: "Mohn",
+    lastName: "Doe",
+    emailId: "mohn@doe.com",
+    password: "password123",
+    age: 30,
+    gender: "male",
+  });
+
+  const result = await user.save();
+  res.send("User created");
 });
 
 connectDB()
