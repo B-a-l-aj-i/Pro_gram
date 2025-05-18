@@ -1,21 +1,16 @@
 import express from "express";
+import { adminAuth } from "./middlewares/auth.js";
 
 const app = express();
 
-// app.use("/", (req, res, next) => {
-//   console.log("Middleware for all routes");
-//   res.send("Hello from the root route");
-//   next();
-// });
+app.use("/admin", adminAuth);
 
-app.get("/test", (req, res, next) => {
-  console.log("Middleware for /test route");
-  // res.send("Hello from the /test  1 route");
-  next();
+app.get("/admin/all", (req, res) => {
+  res.send("all data");
 });
 
-app.get("/test", (req, res) => {
-  res.send("Hello from /test route");
+app.delete("/admin/user/1", (req, res) => {
+  res.send("Deleted");
 });
 
 app.listen(3000, () => {
