@@ -28,6 +28,8 @@ app.post("/signup", async (req, res) => {
   res.send("User created");
 });
 
+app.post("/signin");
+
 connectDB()
   .then(() => {
     console.log("Connected to MongoDB");
