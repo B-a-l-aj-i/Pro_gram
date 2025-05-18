@@ -30,6 +30,8 @@ app.post("/signup", async (req, res) => {
 
 app.post("/signin");
 
+app.post("/logout");
+
 connectDB()
   .then(() => {
     console.log("Connected to MongoDB");
