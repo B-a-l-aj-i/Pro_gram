@@ -1,5 +1,6 @@
 import express from "express";
 import { adminAuth } from "./middlewares/auth.js";
+import e from "express";
 
 const app = express();
 
@@ -11,6 +12,10 @@ app.get("/admin/all", (req, res) => {
 
 app.delete("/admin/user/1", (req, res) => {
   res.send("Deleted");
+});
+
+app.use("/", (err, req, res, next) => {
+  res.status(500).send("Internal Server Error");
 });
 
 app.listen(3000, () => {
