@@ -21,9 +21,13 @@ app.get("/user", async (req, res) => {
 
 app.delete("/user", async (req, res) => {
   console.log(req);
-  const { userId } = req.body;
+  const { userId, emailId } = req.body;
 
-  const result = await User.findByIdAndDelete({ _id: userId });
+  if (userId) {
+    const result = await User.findOneAndDelete({ userId });
+  }
+
+  const result = await User.findOneAndDelete({ emailId });
 
   if (!result) {
     res.send("user not found");
