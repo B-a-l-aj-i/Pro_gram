@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
     lowercase: true,
+    match: /.+\@.+\..+/,
   },
   password: {
     type: String,
@@ -24,6 +25,11 @@ const userSchema = new mongoose.Schema({
   },
   gender: {
     type: String,
+    lowercase: true,
+    enum: {
+      values: ["male", "female", "other"],
+      message: "{VALUE} is not a valid gender",
+    },
   },
 });
 
