@@ -1,8 +1,10 @@
+import { response } from "express";
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
+    required: true,
   },
   lastName: {
     type: String,
@@ -11,6 +13,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    lowercase: true,
   },
   password: {
     type: String,
