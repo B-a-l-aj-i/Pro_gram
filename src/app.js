@@ -1,42 +1,56 @@
 import express from "express";
 import { connectDB } from "./config/database.js";
-import mongoose from "mongoose";
 import User from "./models/user.js";
 const app = express();
 
-app.get("/all", async (req, res) => {
-  const result = await mongoose.connection.db
-    .collection("user")
-    .find()
-    .toArray();
+app.use(express.json());
 
-  console.log(result);
+app.get("/feed", async (req, res) => {
+  const result = await User.find();
+  res.send(result);
+});
+
+app.get("/user", async (req, res) => {
+  const { emailId } = req.body;
+  const result = await User.findOne({
+    emailId,
+  });
+
+  res.send(result);
+});
+
+app.delete("/user", async (req, res) => {
+  console.log(req);
+  const { userId } = req.body;
+
+  const result = await User.findByIdAndDelete({ _id: userId });
+
+  if (!result) {
+    res.send("user not found");
+  }
+
   res.send(result);
 });
 
 app.post("/signup", async (req, res) => {
-  const user = new User({
-    firstName: "Mohn",
-    lastName: "Doe",
-    emailId: "mohn@doe.com",
-    password: "password123",
-    age: 30,
-    gender: "male",
-  });
+  // const user = new User({
+  //   firstName: "Mohn",
+  //   lastName: "Doe",
+  //   emailId: "mohn@doe.com",
+  //   password: "password123",
+  //   age: 30,
+  //   gender: "male",
+  // });
 
-  const result = await user.save();
-  res.send("User created");
+  // const result = await user.save();
+  res.send(req.body);
 });
-
-app.post("/signin");
-
-app.post("/logout");
 
 connectDB()
   .then(() => {
     console.log("Connected to MongoDB");
-    app.listen(3000, () => {
-      console.log("Server is running on port 3000");
+    app.listen(8000, () => {
+      console.log("Server is running on port 8000");
     });
   })
   .catch((err) => console.log(err));
