@@ -32,18 +32,25 @@ app.delete("/user", async (req, res) => {
   res.send(result);
 });
 
-app.post("/signup", async (req, res) => {
-  // const user = new User({
-  //   firstName: "Mohn",
-  //   lastName: "Doe",
-  //   emailId: "mohn@doe.com",
-  //   password: "password123",
-  //   age: 30,
-  //   gender: "male",
-  // });
+app.patch("/user", async (req, res) => {
+  const { emailId, ...data } = req.body;
+  const result = await User.findOne({ emailId }).updateOne({
+    ...data,
+  });
 
-  // const result = await user.save();
-  res.send(req.body);
+  if (!result) {
+    res.send("error in updating");
+  }
+
+  res.send("updated successfully");
+});
+
+app.post("/signup", async (req, res) => {
+  const data = req.body;
+  const user = new User(data);
+
+  const result = await user.save();
+  res.send(result);
 });
 
 connectDB()
