@@ -1,42 +1,67 @@
 import express from "express";
 import { connectDB } from "./config/database.js";
-import mongoose from "mongoose";
 import User from "./models/user.js";
 const app = express();
 
-app.get("/all", async (req, res) => {
-  const result = await mongoose.connection.db
-    .collection("user")
-    .find()
-    .toArray();
+app.use(express.json());
 
-  console.log(result);
+app.get("/feed", async (req, res) => {
+  const result = await User.find();
   res.send(result);
 });
 
-app.post("/signup", async (req, res) => {
-  const user = new User({
-    firstName: "Mohn",
-    lastName: "Doe",
-    emailId: "mohn@doe.com",
-    password: "password123",
-    age: 30,
-    gender: "male",
+app.get("/user", async (req, res) => {
+  const { emailId } = req.body;
+  const result = await User.findOne({
+    emailId,
   });
 
-  const result = await user.save();
-  res.send("User created");
+  res.send(result);
 });
 
-app.post("/signin");
+app.delete("/user", async (req, res) => {
+  console.log(req);
+  const { userId, emailId } = req.body;
 
-app.post("/logout");
+  if (userId) {
+    const result = await User.findOneAndDelete({ userId });
+  }
+
+  const result = await User.findOneAndDelete({ emailId });
+
+  if (!result) {
+    res.send("user not found");
+  }
+
+  res.send(result);
+});
+
+app.patch("/user", async (req, res) => {
+  const { emailId, ...data } = req.body;
+  const result = await User.findOne({ emailId }).updateOne({
+    ...data,
+  });
+
+  if (!result) {
+    res.send("error in updating");
+  }
+
+  res.send("updated successfully");
+});
+
+app.post("/signup", async (req, res) => {
+  const data = req.body;
+  const user = new User(data);
+
+  const result = await user.save();
+  res.send(result);
+});
 
 connectDB()
   .then(() => {
     console.log("Connected to MongoDB");
-    app.listen(3000, () => {
-      console.log("Server is running on port 3000");
+    app.listen(8000, () => {
+      console.log("Server is running on port 8000");
     });
   })
   .catch((err) => console.log(err));

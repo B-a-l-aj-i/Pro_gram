@@ -1,8 +1,10 @@
+import { response } from "express";
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
+    required: true,
   },
   lastName: {
     type: String,
@@ -11,6 +13,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    lowercase: true,
+    match: /.+\@.+\..+/,
   },
   password: {
     type: String,
@@ -21,6 +25,11 @@ const userSchema = new mongoose.Schema({
   },
   gender: {
     type: String,
+    lowercase: true,
+    enum: {
+      values: ["male", "female", "other"],
+      message: "{VALUE} is not a valid gender",
+    },
   },
 });
 
