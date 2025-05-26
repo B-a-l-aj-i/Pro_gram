@@ -1,10 +1,20 @@
 import { response } from "express";
 import mongoose from "mongoose";
+import validator from "validator";
 
 const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: true,
+  },
+  photoUrl: {
+    type: String,
+    default: "https://www.svgrepo.com/show/452030/avatar-default.svg",
+    validate(value) {
+      if (!validator.isURL(value)) {
+        throw new Error();
+      }
+    },
   },
   lastName: {
     type: String,
@@ -22,6 +32,9 @@ const userSchema = new mongoose.Schema({
   },
   age: {
     type: Number,
+  },
+  skills: {
+    type: [String],
   },
   gender: {
     type: String,
