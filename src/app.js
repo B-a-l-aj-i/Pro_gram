@@ -67,29 +67,48 @@ app.patch("/user", async (req, res) => {
 
 app.post("/signup", async (req, res) => {
   validateSignUp(req);
+  const data = req.body;
   const { password } = req.body;
-  const hashedPassword = bcrypt.hash(password, 10, (err, hash) => {
-    console.log(hash);
-    res.send("hashedPassword :" + hash);
+  const hashedPassword = await bcrypt.hash(password, 10);
+  data.password = hashedPassword;
+  // res.send("hp: " + hashedPassword);
+  const user = new User({
+    firstName: data.firstName,
+    lastName: data.lastName,
+    emailId: data.emailId,
+    password: hashedPassword,
   });
-  // const data = req.body;
-  // const user = new User(data);
-  // const result = await user.save();
-  // res.send("sign up successful" + result);
+  const result = await user.save();
+  res.send("sign up successful" + result);
 });
 
-app.patch("/allpass", async (req, res) => {
-  const all = await User.find();
+app.post("/signin", async (req, res) => {
+  const { emailId, password } = req.body;
+  const user = await User.findOne({
+    emailId,
+  });
 
-  const result = await Promise.all(
-    all.map(async (user) => {
-      const hashedPassword = await bcrypt.hash(user.password, 10);
-      user.password = hashedPassword;
-      return user.save();
-    })
-  );
-  res.send(result);
+  console.log(await bcrypt.compare(password, user.password));
+
+  if (await bcrypt.compare(password, user.password)) {
+    res.send("logged in successfully");
+  } else {
+    res.status(404).send("incorrect password");
+  }
 });
+
+// app.patch("/allpass", async (req, res) => {
+//   const all = await User.find();
+
+//   const result = await Promise.all(
+//     all.map(async (user) => {
+//       const hashedPassword = await bcrypt.hash(user.password, 10);
+//       user.password = hashedPassword;
+//       return user.save();
+//     })
+//   );
+//   res.send(result);
+// });
 
 connectDB()
   .then(() => {
