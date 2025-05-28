@@ -67,29 +67,36 @@ app.patch("/user", async (req, res) => {
 
 app.post("/signup", async (req, res) => {
   validateSignUp(req);
-  const data = req.body;
-  const { password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  data.password = hashedPassword;
-  // res.send("hp: " + hashedPassword);
-  const user = new User({
-    firstName: data.firstName,
-    lastName: data.lastName,
-    emailId: data.emailId,
-    password: hashedPassword,
-  });
-  const result = await user.save();
-  res.send("sign up successful" + result);
+  try {
+    const data = req.body;
+    const { password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    data.password = hashedPassword;
+    // res.send("hp: " + hashedPassword);
+    const user = new User({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      emailId: data.emailId,
+      password: hashedPassword,
+    });
+    if (user) {
+      const result = await user.save();
+      res.send("sign up successful" + result);
+    }
+  } catch (err) {
+    res.status(404).send(err.message + "account not created");
+  }
 });
 
-app.post("/signin", async (req, res) => {
+app.post("/login", async (req, res) => {
   const { emailId, password } = req.body;
   const user = await User.findOne({
     emailId,
   });
 
-  console.log(await bcrypt.compare(password, user.password));
-
+  if (!user) {
+    res.sendStatus(404).send("user does not exist");
+  }
   if (await bcrypt.compare(password, user.password)) {
     res.send("logged in successfully");
   } else {
