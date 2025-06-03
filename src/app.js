@@ -27,6 +27,7 @@ app.delete("/user", async (req, res) => {
 
   if (userId) {
     const result = await User.findOneAndDelete({ userId });
+    res.send(result);
   }
 
   const result = await User.findOneAndDelete({ emailId });
@@ -72,7 +73,6 @@ app.post("/signup", async (req, res) => {
     const { password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     data.password = hashedPassword;
-    // res.send("hp: " + hashedPassword);
     const user = new User({
       firstName: data.firstName,
       lastName: data.lastName,
