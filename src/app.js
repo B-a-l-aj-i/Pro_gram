@@ -3,13 +3,89 @@ import { connectDB } from "./config/database.js";
 import User from "./models/user.js";
 import { validateSignUp } from "./utils/validator.js";
 import bcrypt from "bcrypt";
+import cookieParser from "cookie-parser";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+import { userAuth } from "./middlewares/auth.js";
+
 const app = express();
+dotenv.config();
 
 app.use(express.json());
+app.use(cookieParser());
 
-app.get("/feed", async (req, res) => {
-  const result = await User.find();
-  res.send(result);
+// this is use to load the environment variables from the .env file
+
+app.post("/signup", async (req, res) => {
+  validateSignUp(req);
+  try {
+    const data = req.body;
+    const { password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    data.password = hashedPassword;
+    const user = new User({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      emailId: data.emailId,
+      password: hashedPassword,
+    });
+    if (user) {
+      const result = await user.save();
+      res.send("sign up successful" + result);
+    }
+  } catch (err) {
+    res.status(404).send(err.message + "account not created");
+  }
+});
+
+app.post("/login", async (req, res) => {
+  const { emailId, password } = req.body;
+  const user = await User.findOne({
+    emailId,
+  });
+
+  if (!user) {
+    res.sendStatus(404).send("user does not exist");
+  }
+  const passwordMatch = await bcrypt.compare(password, user.password);
+  if (passwordMatch) {
+    const token = jwt.sign(
+      {
+        userId: user.id,
+      },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "24h" }
+    );
+
+    res.cookie("token", token, { maxAge: 24 * 60 * 60 * 1000 });
+
+    res.status(200).send("logged in successfully");
+  } else {
+    res.status(404).send("incorrect password");
+  }
+});
+
+app.get("/profile", userAuth, async (req, res) => {
+  try {
+    const { user } = req;
+
+    res.status(200).send(user);
+  } catch (error) {
+    res.status(404).send(error.message);
+  }
+});
+
+app.get("/feed", userAuth, async (req, res) => {
+  try {
+    const result = await User.find();
+    if (!result) {
+      throw new Error("error in fetching feed");
+    }
+    res.send(result);
+  } catch (error) {
+    console.log("cannot fetching feed", error.message);
+    res.status(400)("cannot fetching feed");
+  }
 });
 
 app.get("/user", async (req, res) => {
@@ -66,42 +142,9 @@ app.patch("/user", async (req, res) => {
   res.send("updated successfully");
 });
 
-app.post("/signup", async (req, res) => {
-  validateSignUp(req);
-  try {
-    const data = req.body;
-    const { password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    data.password = hashedPassword;
-    const user = new User({
-      firstName: data.firstName,
-      lastName: data.lastName,
-      emailId: data.emailId,
-      password: hashedPassword,
-    });
-    if (user) {
-      const result = await user.save();
-      res.send("sign up successful" + result);
-    }
-  } catch (err) {
-    res.status(404).send(err.message + "account not created");
-  }
-});
-
-app.post("/login", async (req, res) => {
-  const { emailId, password } = req.body;
-  const user = await User.findOne({
-    emailId,
-  });
-
-  if (!user) {
-    res.sendStatus(404).send("user does not exist");
-  }
-  if (await bcrypt.compare(password, user.password)) {
-    res.send("logged in successfully");
-  } else {
-    res.status(404).send("incorrect password");
-  }
+app.get("/cookies", (req, res) => {
+  console.log(req.cookies);
+  res.send(req.cookies);
 });
 
 // app.patch("/allpass", async (req, res) => {
@@ -119,7 +162,9 @@ app.post("/login", async (req, res) => {
 
 connectDB()
   .then(() => {
-    console.log("Connected to MongoDB");
+    console.log(
+      "********************Connected to MongoDB*********************"
+    );
     app.listen(8000, () => {
       console.log("Server is running on port 8000");
     });
