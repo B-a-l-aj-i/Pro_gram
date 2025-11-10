@@ -47,15 +47,9 @@ app.post("/login", async (req, res) => {
   if (!user) {
     res.sendStatus(404).send("user does not exist");
   }
-  const passwordMatch = await bcrypt.compare(password, user.password);
+  const passwordMatch = await user.validatePassword(password)
   if (passwordMatch) {
-    const token = jwt.sign(
-      {
-        userId: user.id,
-      },
-      process.env.JWT_SECRET_KEY,
-      { expiresIn: "24h" }
-    );
+    const token = await user.getJwt()
 
     res.cookie("token", token, { maxAge: 24 * 60 * 60 * 1000 });
 
