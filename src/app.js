@@ -47,9 +47,9 @@ app.post("/login", async (req, res) => {
   if (!user) {
     res.sendStatus(404).send("user does not exist");
   }
-  const passwordMatch = await user.validatePassword(password)
+  const passwordMatch = await user.validatePassword(password);
   if (passwordMatch) {
-    const token = await user.getJwt()
+    const token = await user.getJwt();
 
     res.cookie("token", token, { maxAge: 24 * 60 * 60 * 1000 });
 

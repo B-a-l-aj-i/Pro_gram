@@ -3,8 +3,7 @@ import User from "../models/user.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-const JWT_SECRET_KEY=process.env.JWT_SECRET_KEY;
-
+const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 export const userAuth = async (req, res, next) => {
   try {
@@ -12,12 +11,12 @@ export const userAuth = async (req, res, next) => {
 
     if (!token) {
       throw new Error("token not found");
-    }    
+    }
 
     const decoded = await jwt.verify(token, JWT_SECRET_KEY);
-    
-    if(!decoded){
-      throw new Error("ERROR in jwt key validation")
+
+    if (!decoded) {
+      throw new Error("ERROR in jwt key validation");
     }
 
     const user = await User.findById(decoded.userId);
@@ -26,12 +25,12 @@ export const userAuth = async (req, res, next) => {
       throw new Error("user does not exist");
     }
 
-    req.user=user;
+    req.user = user;
     next();
     return user;
   } catch (error) {
     console.log(error.message);
-    
+
     res.status(404).send("error in user auth");
   }
 };
