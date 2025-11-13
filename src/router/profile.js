@@ -29,32 +29,43 @@ profileRouter.get("/feed", userAuth, async (req, res) => {
 
 profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
   const { user } = req;
-try{
-  
-  const { ...data } = req.body;
+  try {
+    const { ...data } = req.body;
 
-  const ALLOWED_UPDATES = ["password", "age", "gender", "skills", "photoUrl"];
-  const isUpdateAllowed = Object.keys(data).every((el) => {
-    return ALLOWED_UPDATES.includes(el);
-  });
+    const ALLOWED_UPDATES = [
+      "password",
+      "age",
+      "gender",
+      "skills",
+      "photoUrl",
+      "about",
+    ];
+    const isUpdateAllowed = Object.keys(data).every((el) => {
+      return ALLOWED_UPDATES.includes(el);
+    });
 
-  if (data.skills.length > 10) {
-    throw new Error("you can have only upto 10 skills");
+    if (data.skills && data.skills.length > 10) {
+      console.warn("you can have only upto 10 skills");
+      throw new Error("you can have only upto 10 skills");
+    }
+
+    if (!isUpdateAllowed) {
+      console.warn("update not allowed");
+      throw new Error("update not allowed", {
+        cause: "trying to update that you should not update",
+      });
+    }
+    const result = await user.updateOne(
+      { $set: data },
+      { runValidators: true }
+    );
+
+    if (!result) {
+      res.status(400).send("error in updating");
+    }
+    res.status(200).send("updated successfully");
+  } catch (error) {
+    console.error("error in updating profile", error);
+    res.status(400).send("error in updating profile");
   }
-
-  if (!isUpdateAllowed) {
-    throw new Error("update  not allowed");
-  }
-  const result = await user.updateOne({ $set: data }, { runValidators: true });
-  if (!result) {
-    res.send("error in updating");
-  }
-
-  res.send("updated successfully");
-}catch(error){
-
-  console.log("error in updating profile",error.message);
-  
-  res.status(400).send("error in updating profile")
-}
 });
