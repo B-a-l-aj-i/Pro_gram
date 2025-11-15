@@ -1,101 +1,88 @@
 import express from "express";
 import { connectDB } from "./config/database.js";
-import User from "./models/user.js";
-import { validateSignUp } from "./utils/validator.js";
-import bcrypt from "bcrypt";
+
+import cookieParser from "cookie-parser";
+import { authRouter } from "./router/auth.js";
+import { profileRouter } from "./router/profile.js";
+
 const app = express();
 
+
 app.use(express.json());
+app.use(cookieParser());
 
-app.get("/feed", async (req, res) => {
-  const result = await User.find();
-  res.send(result);
-});
+app.use("/", authRouter);
+app.use("/", profileRouter);
 
-app.get("/user", async (req, res) => {
-  const { emailId } = req.body;
-  const result = await User.findOne({
-    emailId,
-  });
+connectDB()
+  .then(() => {
+    console.log(
+      "********************Connected to MongoDB*********************"
+    );
+    app.listen(8000, () => {
+      console.log("Server is running on port 8000");
+    });
+  })
+  .catch((err) => console.log(err));
 
-  res.send(result);
-});
+// app.get("/user", async (req, res) => {
+//   const { emailId } = req.body;
+//   const result = await User.findOne({
+//     emailId,
+//   });
 
-app.delete("/user", async (req, res) => {
-  console.log(req);
-  const { userId, emailId } = req.body;
+//   res.send(result);
+// });
 
-  if (userId) {
-    const result = await User.findOneAndDelete({ userId });
-  }
+// app.delete("/user", async (req, res) => {
+//   console.log(req);
+//   const { userId, emailId } = req.body;
 
-  const result = await User.findOneAndDelete({ emailId });
+//   if (userId) {
+//     const result = await User.findOneAndDelete({ userId });
+//     res.send(result);
+//   }
 
-  if (!result) {
-    res.send("user not found");
-  }
+//   const result = await User.findOneAndDelete({ emailId });
 
-  res.send(result);
-});
+//   if (!result) {
+//     res.send("user not found");
+//   }
 
-app.patch("/user", async (req, res) => {
-  const { emailId, ...data } = req.body;
+//   res.send(result);
+// });
 
-  const ALLOWED_UPDATES = ["password", "age", "gender", "skills", "photoUrl"];
-  const isUpdateAllowed = Object.keys(data).every((el) => {
-    return ALLOWED_UPDATES.includes(el);
-  });
+// app.patch("/user", async (req, res) => {
+//   const { emailId, ...data } = req.body;
 
-  if (data.skills.length > 10) {
-    throw new Error("you can have only upto 10 skills");
-  }
+//   const ALLOWED_UPDATES = ["password", "age", "gender", "skills", "photoUrl"];
+//   const isUpdateAllowed = Object.keys(data).every((el) => {
+//     return ALLOWED_UPDATES.includes(el);
+//   });
 
-  if (!isUpdateAllowed) {
-    throw new Error("update  not allowed");
-  }
-  const result = await User.updateOne(
-    { emailId },
-    { $set: data },
-    { runValidators: true }
-  );
-  if (!result) {
-    res.send("error in updating");
-  }
+//   if (data.skills.length > 10) {
+//     throw new Error("you can have only upto 10 skills");
+//   }
 
-  res.send("updated successfully");
-});
+//   if (!isUpdateAllowed) {
+//     throw new Error("update  not allowed");
+//   }
+//   const result = await User.updateOne(
+//     { emailId },
+//     { $set: data },
+//     { runValidators: true }
+//   );
+//   if (!result) {
+//     res.send("error in updating");
+//   }
 
-app.post("/signup", async (req, res) => {
-  validateSignUp(req);
-  const data = req.body;
-  const { password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  data.password = hashedPassword;
-  // res.send("hp: " + hashedPassword);
-  const user = new User({
-    firstName: data.firstName,
-    lastName: data.lastName,
-    emailId: data.emailId,
-    password: hashedPassword,
-  });
-  const result = await user.save();
-  res.send("sign up successful" + result);
-});
+//   res.send("updated successfully");
+// });
 
-app.post("/signin", async (req, res) => {
-  const { emailId, password } = req.body;
-  const user = await User.findOne({
-    emailId,
-  });
-
-  console.log(await bcrypt.compare(password, user.password));
-
-  if (await bcrypt.compare(password, user.password)) {
-    res.send("logged in successfully");
-  } else {
-    res.status(404).send("incorrect password");
-  }
-});
+// app.get("/cookies", (req, res) => {
+//   console.log(req.cookies);
+//   res.send(req.cookies);
+// });
 
 // app.patch("/allpass", async (req, res) => {
 //   const all = await User.find();
@@ -109,12 +96,3 @@ app.post("/signin", async (req, res) => {
 //   );
 //   res.send(result);
 // });
-
-connectDB()
-  .then(() => {
-    console.log("Connected to MongoDB");
-    app.listen(8000, () => {
-      console.log("Server is running on port 8000");
-    });
-  })
-  .catch((err) => console.log(err));
