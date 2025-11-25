@@ -15,12 +15,11 @@ const ConnectionRequest = new mongoose.Schema(
     status: {
       type: String,
       enum: {
-        values: ["ignored","pending", "accepted", "rejected"],
+        values: ["ignored","interested","pending", "accepted", "rejected"],
         message: "{VALUE} is not a valid status",
       },
       default: "pending",
     },
-    timestamps:true,
   },
   {
     timestamps: true,
@@ -30,7 +29,5 @@ const ConnectionRequest = new mongoose.Schema(
 // Prevent duplicate connections between the same users
 ConnectionRequest.index({ fromId: 1, toId: 1 }, { unique: true });
 
-const ConnectionRequestModel =new mongoose.model("UserConnection", userConnectionSchema);
-
-export default ConnectionRequestModel;
+export const ConnectionRequestModel =new mongoose.model("UserConnection", ConnectionRequest);
 
