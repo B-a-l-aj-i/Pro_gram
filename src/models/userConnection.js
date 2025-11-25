@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 
-const userConnectionSchema = new mongoose.Schema(
+const ConnectionRequest = new mongoose.Schema(
   {
-    fromId: {
+    fromUserId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    toId: {
+    toUserId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -15,11 +15,12 @@ const userConnectionSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: {
-        values: ["pending", "accepted", "rejected"],
+        values: ["ignored","pending", "accepted", "rejected"],
         message: "{VALUE} is not a valid status",
       },
       default: "pending",
     },
+    timestamps:true,
   },
   {
     timestamps: true,
@@ -27,9 +28,9 @@ const userConnectionSchema = new mongoose.Schema(
 );
 
 // Prevent duplicate connections between the same users
-userConnectionSchema.index({ fromId: 1, toId: 1 }, { unique: true });
+ConnectionRequest.index({ fromId: 1, toId: 1 }, { unique: true });
 
-const UserConnection = mongoose.model("UserConnection", userConnectionSchema);
+const ConnectionRequestModel =new mongoose.model("UserConnection", userConnectionSchema);
 
-export default UserConnection;
+export default ConnectionRequestModel;
 
